@@ -51,31 +51,27 @@ describe("MetaTransaction", async () => {
     /*
       Transaction 1
     */
-
     const tx1: MetaTransaction.TransactionStruct = await createTransaction(accounts[1], true)
-    const encodedTx1 = await metaTx.connect(accounts[1]).encodeTransaction(tx1.to, tx1.signer, tx1.nonce ,tx1.flag, tx1.message);
-    const messageHash1 = await metaTx.connect(accounts[1]).getMessageHash(tx1.to, tx1.signer, tx1.nonce ,tx1.flag, tx1.message);
-    const ethSignedMessage1 = await metaTx.connect(accounts[1]).getEthSignedMessageHash(messageHash1);
-    const signature1 = await accounts[1].signMessage(ethSignedMessage1);
+    const messageHash1 = await metaTx.connect(accounts[1]).getTxMessageHashHelper(tx1);
+    const signature1 = await accounts[1].signMessage(ethers.utils.arrayify(messageHash1));
+
 
     /*
       Transaction 2
     */
     const tx2: MetaTransaction.TransactionStruct = await createTransaction(accounts[2], false)
-    const encodedTx2 = await metaTx.connect(accounts[2]).encodeTransaction(tx2.to, tx2.signer, tx2.nonce ,tx2.flag, tx2.message);
-    const messageHash2 = await metaTx.connect(accounts[2]).getMessageHash(tx2.to, tx2.signer, tx2.nonce ,tx2.flag, tx2.message);
-    const ethSignedMessage2 = await metaTx.connect(accounts[2]).getEthSignedMessageHash(messageHash2);
-    const signature2 = await accounts[2].signMessage(ethSignedMessage2);
+    const messageHash2 = await metaTx.connect(accounts[2]).getTxMessageHashHelper(tx2);
+    const signature2 = await accounts[2].signMessage(ethers.utils.arrayify(messageHash2));
+
 
 
     /*
-      Transaction 3
+    Transaction 3
     */
     const tx3: MetaTransaction.TransactionStruct = await createTransaction(accounts[3], true)
-    const encodedTx3 = await metaTx.connect(accounts[3]).encodeTransaction(tx3.to, tx3.signer, tx3.nonce ,tx3.flag, tx3.message);
-    const messageHash3 = await metaTx.connect(accounts[3]).getMessageHash(tx3.to, tx3.signer, tx3.nonce ,tx3.flag, tx3.message);
-    const ethSignedMessage3 = await metaTx.connect(accounts[3]).getEthSignedMessageHash(messageHash3);
-    const signature3 = await accounts[3].signMessage(ethSignedMessage3);
+    const messageHash3 = await metaTx.connect(accounts[3]).getTxMessageHashHelper(tx3);
+    const signature3 = await accounts[3].signMessage(ethers.utils.arrayify(messageHash3));
+
 
     // const decodedTx1 = await metaTx.decodeTransaction(encodedTx1);
     // const decodedTx2 = await metaTx.decodeTransaction(encodedTx2);
@@ -85,24 +81,24 @@ describe("MetaTransaction", async () => {
     // console.log("tx2: ", decodedTx2)
     // console.log("tx3: ", decodedTx3)
 
+    const encodedTx1 = await metaTx.connect(accounts[1]).encodeTransaction(tx1.to, tx1.signer, tx1.nonce ,tx1.flag, tx1.message);
+    const encodedTx2 = await metaTx.connect(accounts[2]).encodeTransaction(tx2.to, tx2.signer, tx2.nonce ,tx2.flag, tx2.message);
+    const encodedTx3 = await metaTx.connect(accounts[3]).encodeTransaction(tx3.to, tx3.signer, tx3.nonce ,tx3.flag, tx3.message);
     transactionStorage.set("1",
       [
         {
           signature: signature1,
           signer: accounts[1].address,
-          ethSignedHash: ethSignedMessage1,
           encodedTransaction: encodedTx1,
         },
         {
           signature: signature2,
           signer: accounts[2].address,
-          ethSignedHash: ethSignedMessage2,
           encodedTransaction: encodedTx2,
         },
         {
           signature: signature3,
           signer: accounts[3].address,
-          ethSignedHash: ethSignedMessage3,
           encodedTransaction: encodedTx3,
         },
       ]
@@ -114,9 +110,8 @@ describe("MetaTransaction", async () => {
 
     const tx = transactionStorage.get("1")
     if (tx) {
-      // console.log(tx)
-      console.log(await metaTx.verifyTx(tx))
-      // console.log(await metaTx.getVerifiedTransactions())
+      // console.log(tx);
+      expect(await metaTx.verifyTx(tx)).to.be.equal(true);
     } else {
       console.log("no test");
     }

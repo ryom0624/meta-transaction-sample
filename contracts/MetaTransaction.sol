@@ -7,7 +7,6 @@ contract MetaTransaction {
     struct TransactionStorageWithEncodedTransaction {
         bytes signature;
         address signer;
-        bytes ethSignedHash;
         bytes encodedTransaction;
     }
 
@@ -26,6 +25,13 @@ contract MetaTransaction {
     }
 
     // Transaction[] public transactions;
+
+    // helper function
+    function getTxMessageHashHelper(
+        Transaction memory _tx
+    ) public pure returns (bytes32) {
+        return getMessageHash(_tx.to, _tx.signer,_tx.nonce,_tx.flag,_tx.message);
+    }
 
     function getMessageHash(
         address _to,
@@ -58,8 +64,14 @@ contract MetaTransaction {
         bool isValid = true;
         for (uint i = 0; i < txesWithEncoded.length; i++) {
             Transaction memory decodedTx = decodeTransaction(txesWithEncoded[i].encodedTransaction);
+            // console.log("to", decodedTx.to);
+            // console.log("signer", decodedTx.signer);
+            // console.log("nonce", decodedTx.nonce);
+            // console.log("flag", decodedTx.flag);
+            // console.log("message", decodedTx.message);
             bool ok = verify(decodedTx.to, decodedTx.signer, decodedTx.nonce, decodedTx.flag, decodedTx.message, txesWithEncoded[i].signature);
-            if (ok) {
+            // console.log("************");
+            if (!ok) {
                 isValid = false;
             }
         }
@@ -76,6 +88,8 @@ contract MetaTransaction {
     ) public pure returns (bool) {
         bytes32 messageHash = getMessageHash(_to, _signer, _nonce, _flag, _message);
         bytes32 ethSignedMessageHash = getEthSignedMessageHash(messageHash);
+        // console.logBytes32(ethSignedMessageHash);
+        // console.logBytes(signature);
 
         return recoverSigner(ethSignedMessageHash, signature) == _signer;
     }
