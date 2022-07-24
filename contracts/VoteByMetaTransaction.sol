@@ -4,6 +4,8 @@ import "hardhat/console.sol";
 
 contract VoteByMetaTransaction {
 
+    uint public lastProposalId;
+
     mapping (uint => mapping(address => bool)) public voteResults;
 
     struct VoteStorageWithEncoded {

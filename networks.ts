@@ -16,6 +16,9 @@ if (process.env.PRIVATE_KEY) {
     url: process.env.RINKEBY_RPC,
     accounts: [process.env.PRIVATE_KEY]
   };
+  networks.hardhat = {
+    chainId: 31337,
+  };
 } else {
   networks.hardhat = {}
 }
