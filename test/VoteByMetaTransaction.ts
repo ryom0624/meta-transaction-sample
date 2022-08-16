@@ -114,9 +114,11 @@ describe("VoteByMetaTransaction", async () => {
       expect(await voteContract.getVerifiedVotes(1, accounts[1].address)).to.be.equal(true)
       expect(await voteContract.getVerifiedVotes(1, accounts[2].address)).to.be.equal(false)
       expect(await voteContract.getVerifiedVotes(1, accounts[3].address)).to.be.equal(true)
+
+      expect((await voteContract.getVotes(1)).length).to.be.equal(3);
+
     } else {
       console.log("no test");
     }
-
   });
 })

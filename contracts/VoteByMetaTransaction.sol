@@ -2,11 +2,19 @@ pragma solidity ^0.8.9;
 
 import "hardhat/console.sol";
 
+/*
+const Contract = await ethers.getContractFactory("VoteByMetaTransaction")
+const contract = await Contract.deploy()
+await contract.
+
+*/
+
 contract VoteByMetaTransaction {
 
-    uint public lastProposalId;
+    uint public lastProposalId = 1;
 
     mapping (uint => mapping(address => bool)) public voteResults;
+    mapping (uint => Vote[]) public votes;
 
     struct VoteStorageWithEncoded {
         bytes signature;
@@ -26,6 +34,10 @@ contract VoteByMetaTransaction {
         uint nonce;
         bool flag; // todo: not boolean
         string message;
+    }
+
+    function getVotes(uint _proposalId) public view returns (Vote[] memory) {
+        return votes[_proposalId];
     }
 
     // helper function
@@ -64,17 +76,24 @@ contract VoteByMetaTransaction {
         uint _voteId,
         VoteStorageWithEncoded[] calldata votesWithEncoded
     ) public {
-        uint invalidVoteCount;
+        require(votesWithEncoded.length > 0, "invalid length");
+
         for (uint i = 0; i < votesWithEncoded.length; i++) {
             Vote memory decodedVote = decodeVote(votesWithEncoded[i].encodedVote);
             bool ok = verify(decodedVote.signer, decodedVote.id, decodedVote.nonce, decodedVote.flag, decodedVote.message, votesWithEncoded[i].signature);
-            if (ok) {
-                // Todo: HIGH Gas Fee
-                voteResults[_voteId][decodedVote.signer] = decodedVote.flag;
-            } else {
-                invalidVoteCount++;
-            }
+            require(ok, "includes invalid voting");
+            // Todo: HIGH Gas Fee
+            voteResults[_voteId][decodedVote.signer] = decodedVote.flag;
+            votes[_voteId].push(Vote({
+                signer: decodedVote.signer,
+                id: decodedVote.id,
+                nonce: decodedVote.nonce,
+                flag: decodedVote.flag,
+                message: decodedVote.message
+            }));
+
         }
+        lastProposalId++;
     }
 
     function verify(
